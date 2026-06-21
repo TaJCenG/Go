@@ -21,3 +21,7 @@ func main() {
 		fmt.Println("Error:", err)
 	}
 }
+
+//  go mod init Day1Utils
+// >> cd Day1Utils
+// >> go run .
