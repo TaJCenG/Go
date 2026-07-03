@@ -1,5 +1,7 @@
 package user
 
+import "context"
+
 type Service struct {
 	repo *Repository
 }
@@ -32,4 +34,8 @@ func (s *Service) Update(id int, u User) error {
 
 func (s *Service) Delete(id int) error {
 	return s.repo.Delete(id)
+}
+
+func (s *Service) GetUserCtx(ctx context.Context, id int) (User, error) {
+	return s.repo.GetByIDCtx(ctx, id)
 }

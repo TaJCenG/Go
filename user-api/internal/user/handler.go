@@ -80,3 +80,17 @@ func (h *Handler) UserByID(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
+
+func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context() // request-scoped context
+
+	idStr := strings.TrimPrefix(r.URL.Path, "/users/")
+	id, _ := strconv.Atoi(idStr)
+
+	u, err := h.service.GetUserCtx(ctx, id)
+	if err != nil {
+		response.Error(w, http.StatusNotFound, err.Error())
+		return
+	}
+	response.JSON(w, http.StatusOK, u)
+}

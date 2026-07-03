@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 )
@@ -67,4 +68,16 @@ func (r *Repository) Delete(id int) error {
 		return errors.New("user not found")
 	}
 	return nil
+}
+
+func (r *Repository) GetByIDCtx(ctx context.Context, id int) (User, error) {
+	var u User
+	err := r.db.QueryRowContext(ctx,
+		"SELECT id, name, email FROM users WHERE id = ?", id,
+	).Scan(&u.ID, &u.Name, &u.Email)
+
+	if err == sql.ErrNoRows {
+		return User{}, errors.New("user not found")
+	}
+	return u, err
 }
