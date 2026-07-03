@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
@@ -27,9 +28,11 @@ func NewDatabase() *sql.DB {
 		log.Fatalf("Error opening database: %v", err)
 	}
 
-	db.SetMaxOpenConns(25)
-	db.SetMaxIdleConns(25)
-	db.SetConnMaxLifetime(5 * 60)
+	// Connection pool tuning
+	db.SetMaxOpenConns(25)                 // max concurrent connections
+	db.SetMaxIdleConns(25)                 // keep idle connections ready
+	db.SetConnMaxLifetime(5 * time.Minute) // recycle connections after 5 min
+	db.SetConnMaxIdleTime(1 * time.Minute) // close idle after 1 min
 
 	if err := db.Ping(); err != nil {
 		log.Fatalf("Error connecting to database: %v", err)
