@@ -1,13 +1,17 @@
 package main
 
 import (
+	"Day1Utils/user-api/internal/account"
+	"Day1Utils/user-api/internal/config"
+	"Day1Utils/user-api/internal/middleware"
+	"Day1Utils/user-api/internal/user"
+	"context"
 	"log"
 	"net/http"
-
-	"user-api/internal/account"
-	"user-api/internal/config"
-	"user-api/internal/middleware"
-	"user-api/internal/user"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
 func main() {
@@ -15,29 +19,47 @@ func main() {
 	db := config.NewDatabase()
 	defer db.Close()
 
-	// Step 2: Create repositories
+	// Step 2: Wire dependencies
 	userRepo := user.NewRepository(db)
 	accountRepo := account.NewRepository(db)
 
-	// Step 3: Create services
-	userService := user.NewService(userRepo, db)
+	userService := user.NewService(userRepo)
 	accountService := account.NewService(accountRepo, db)
 
-	// Step 4: Create handlers
 	userHandler := user.NewHandler(userService)
 	accountHandler := account.NewHandler(accountService)
 
-	// Step 5: Setup routes
+	// Step 3: Routes
 	mux := http.NewServeMux()
 	userHandler.RegisterRoutes(mux)
 	accountHandler.RegisterRoutes(mux)
 
-	// Step 6: Wrap with middleware
-	server := middleware.Recovery(
-		middleware.Logging(mux),
-	)
+	// Step 4: Middleware
+	server := &http.Server{
+		Addr:    ":8080",
+		Handler: middleware.Recovery(middleware.Logging(mux)),
+	}
 
-	// Step 7: Start server
-	log.Println("Server started on :8080")
-	log.Fatal(http.ListenAndServe(":8080", server))
+	// Step 5: Run server in goroutine
+	go func() {
+		log.Println("Server started on :8080")
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server error: %v", err)
+		}
+	}()
+
+	// Step 6: Graceful shutdown
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	log.Println("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	log.Println("Server exited gracefully")
 }
