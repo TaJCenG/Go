@@ -15,10 +15,14 @@ import (
 )
 
 func main() {
+	logger := config.NewLogger()
+	defer logger.Sync()
+
+	logger.Info("Application startup")
 	// Step 1: Init DB
 	db := config.NewDatabase()
 	defer db.Close()
-
+	logger.Info("Database connection established")
 	// Step 2: Wire dependencies
 	userRepo := user.NewRepository(db)
 	accountRepo := account.NewRepository(db)
