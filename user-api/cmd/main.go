@@ -23,6 +23,12 @@ func main() {
 	db := config.NewDatabase()
 	defer db.Close()
 	logger.Info("Database connection established")
+	rdb := config.NewRedisClient()
+
+	userRepo := user.NewRepository(db)
+	userService := user.NewService(userRepo, db, logger)
+	sessionStore := user.NewSessionStore(rdb)
+
 	// Step 2: Wire dependencies
 	userRepo := user.NewRepository(db)
 	accountRepo := account.NewRepository(db)
