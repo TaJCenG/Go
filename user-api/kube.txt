@@ -1,0 +1,18 @@
+How to Deploy
+bash
+kubectl apply -f user-api-deployment.yaml
+kubectl apply -f mysql-deployment.yaml
+kubectl apply -f redis-deployment.yaml
+kubectl apply -f kafka-deployment.yaml
+Check pods:
+
+bash
+kubectl get pods
+🧠 Interview Insights
+Why Kubernetes over Docker Compose? → Scaling, self‑healing, rolling updates.
+
+How do you manage secrets? → Secret objects, not hardcoded env vars.
+
+How do you expose services? → Service (ClusterIP, NodePort, LoadBalancer).
+
+How do you monitor health? → Liveness/Readiness probes.
