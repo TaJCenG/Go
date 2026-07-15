@@ -66,6 +66,13 @@ func main() {
 		log.Printf("Processing order event: %s", msg)
 		return nil
 	})
+	mux := http.NewServeMux()
+	userHandler.RegisterRoutes(mux)
+	accountHandler.RegisterRoutes(mux)
+
+	// Health endpoints
+	mux.HandleFunc("/health/live", health.Liveness)
+	mux.HandleFunc("/health/ready", health.Readiness)
 
 	// Step 6: Graceful shutdown
 	quit := make(chan os.Signal, 1)
