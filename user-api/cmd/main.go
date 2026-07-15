@@ -3,6 +3,7 @@ package main
 import (
 	"Day1Utils/user-api/internal/account"
 	"Day1Utils/user-api/internal/config"
+	"Day1Utils/user-api/internal/kafka"
 	"Day1Utils/user-api/internal/middleware"
 	"Day1Utils/user-api/internal/user"
 	"context"
@@ -57,6 +58,14 @@ func main() {
 			log.Fatalf("Server error: %v", err)
 		}
 	}()
+	ctx := context.Background()
+	consumer := kafka.NewConsumer([]string{"localhost:9092"}, "orders", "inventory-service")
+
+	consumer.Start(ctx, func(msg string) error {
+		// Deduct stock based on order event
+		log.Printf("Processing order event: %s", msg)
+		return nil
+	})
 
 	// Step 6: Graceful shutdown
 	quit := make(chan os.Signal, 1)
